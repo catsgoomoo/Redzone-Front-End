@@ -127,7 +127,7 @@ const analysisOutline = L.polygon([
 }).addTo(map);
 
 const markerLayer = L.layerGroup().addTo(map);
-const zoneLayer = L.layerGroup().addTo(map);
+let heatLayer = null;
 let selectedId = null;
 let currentTimeIndex = 0;
 let activePopupMarker = null;
@@ -162,24 +162,58 @@ function markerIcon(risk) {
   });
 }
 
-function makeZone(location, conditions) {
-  const radius = 0.22 + conditions.score / 350;
-  const points = [
-    [location.lat + radius * .9, location.lng - radius * .5],
-    [location.lat + radius * .6, location.lng + radius * .65],
-    [location.lat - radius * .1, location.lng + radius],
-    [location.lat - radius * .8, location.lng + radius * .45],
-    [location.lat - radius, location.lng - radius * .35],
-    [location.lat - radius * .25, location.lng - radius]
-  ];
-  return L.polygon(points, {
-    className: "risk-zone",
-    color: riskColors[conditions.risk],
-    fillColor: riskColors[conditions.risk],
-    fillOpacity: .34,
-    weight: 1.4,
-    interactive: false
+function buildHeatPoints() {
+  const points = [];
+
+  locations.forEach(location => {
+    const conditions = adjustedConditions(location, currentTimeIndex);
+    const intensity = Math.max(0.18, conditions.score / 100);
+
+    // A central reading plus nearby support points creates a continuous,
+    // flowing surface instead of separate polygon or hexagon-shaped regions.
+    points.push([location.lat, location.lng, intensity]);
+
+    const spread = 0.18 + (conditions.score / 100) * 0.12;
+    const support = [
+      [ spread, 0], [-spread, 0], [0, spread], [0, -spread],
+      [ spread * 0.7, spread * 0.7],
+      [ spread * 0.7, -spread * 0.7],
+      [-spread * 0.7, spread * 0.7],
+      [-spread * 0.7, -spread * 0.7]
+    ];
+
+    support.forEach(([latOffset, lngOffset]) => {
+      points.push([
+        location.lat + latOffset,
+        location.lng + lngOffset,
+        intensity * 0.72
+      ]);
+    });
   });
+
+  return points;
+}
+
+function renderHeatLayer() {
+  if (heatLayer) map.removeLayer(heatLayer);
+
+  heatLayer = L.heatLayer(buildHeatPoints(), {
+    radius: 52,
+    blur: 42,
+    maxZoom: 10,
+    minOpacity: 0.28,
+    max: 1,
+    gradient: {
+      0.18: "#5ca53d",
+      0.42: "#b6c83e",
+      0.58: "#f2be2e",
+      0.76: "#f28b24",
+      1.0: "#e3483b"
+    }
+  }).addTo(map);
+
+  // Keep exact clickable prediction pins above the blended heat surface.
+  heatLayer.bringToBack();
 }
 
 function popupHTML(location, conditions) {
@@ -209,12 +243,11 @@ function popupHTML(location, conditions) {
 
 function renderMapData() {
   markerLayer.clearLayers();
-  zoneLayer.clearLayers();
   activePopupMarker = null;
+  renderHeatLayer();
 
   locations.forEach(location => {
     const conditions = adjustedConditions(location, currentTimeIndex);
-    makeZone(location, conditions).addTo(zoneLayer);
     const marker = L.marker([location.lat, location.lng], { icon: markerIcon(conditions.risk), title: location.name });
     marker.bindPopup(popupHTML(location, conditions), { closeButton: true, offset: [0,-1] });
     marker.on("popupopen", event => {

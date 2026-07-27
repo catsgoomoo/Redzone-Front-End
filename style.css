@@ -51,6 +51,12 @@ button { color: inherit; }
 #map { position: absolute; inset: 0; background: #6b7174; }
 .leaflet-control-container { display: none; }
 .leaflet-tile-pane { transition: opacity .2s ease; }
+
+.leaflet-heatmap-layer {
+  mix-blend-mode: multiply;
+  opacity: .88;
+}
+
 .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #101b23; color: var(--text); }
 .leaflet-popup-content-wrapper { border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 35px rgba(0,0,0,.32); }
 .leaflet-popup-content { margin: 0; width: 270px !important; }

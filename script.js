@@ -90,10 +90,23 @@ const map = L.map("map", {
   maxBoundsViscosity: 0.82
 }).setView(naturalView.center, naturalView.zoom);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: "© OpenStreetMap contributors"
-}).addTo(map);
+const terrainLayers = {
+  soft: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    subdomains: "abcd",
+    attribution: "© OpenStreetMap contributors © CARTO"
+  }),
+  balanced: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: "Tiles © Esri"
+  }),
+  detailed: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: "Tiles © Esri"
+  })
+};
+
+let activeTerrainLayer = terrainLayers.balanced.addTo(map);
 
 // A broad gray context mask and a highlighted California analysis footprint.
 L.rectangle(californiaBounds, {
@@ -286,12 +299,23 @@ document.getElementById("close-details").addEventListener("click", closeDetails)
 
 document.querySelectorAll("[data-terrain]").forEach(button => {
   button.addEventListener("click", () => {
+    const terrainName = button.dataset.terrain;
+    const nextLayer = terrainLayers[terrainName];
+    if (!nextLayer || nextLayer === activeTerrainLayer) return;
+
     document.querySelectorAll("[data-terrain]").forEach(item => item.classList.remove("active"));
     button.classList.add("active");
-    document.querySelector(".map-wrap").dataset.terrain = button.dataset.terrain;
+    map.removeLayer(activeTerrainLayer);
+    activeTerrainLayer = nextLayer.addTo(map);
   });
 });
 
-document.querySelector(".map-wrap").dataset.terrain = "balanced";
 renderMapData();
-setTimeout(() => map.invalidateSize(), 80);
+requestAnimationFrame(() => {
+  map.invalidateSize(true);
+  map.setView(naturalView.center, naturalView.zoom, { animate: false });
+});
+window.addEventListener("load", () => {
+  map.invalidateSize(true);
+  map.setView(naturalView.center, naturalView.zoom, { animate: false });
+});

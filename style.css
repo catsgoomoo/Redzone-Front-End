@@ -24,7 +24,7 @@ body {
 button, input { font: inherit; }
 button { color: inherit; }
 
-.app-shell { height: 100%; display: grid; grid-template-rows: 94px 1fr; }
+.app-shell { height: 100%; display: grid; grid-template-rows: 112px 1fr; }
 .topbar {
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@ button { color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; text-decoration: none; color: var(--text); flex: 0 0 auto; }
-.brand-logo { display: block; height: 58px; width: auto; object-fit: contain; }
+.brand-logo { display: block; width: auto; height: 88px; max-width: 430px; object-fit: contain; }
 
 .time-control { margin-left: auto; width: min(620px, 55vw); }
 .time-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 4px; }
@@ -50,9 +50,7 @@ button { color: inherit; }
 .map-wrap { position: relative; min-width: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--line); background: #66706f; }
 #map { position: absolute; inset: 0; background: #6b7174; }
 .leaflet-control-container { display: none; }
-.leaflet-tile-pane { filter: saturate(.82) contrast(.94) brightness(.82); transition: filter .25s ease; }
-.map-wrap[data-terrain="soft"] .leaflet-tile-pane { filter: saturate(.48) contrast(.82) brightness(.84); }
-.map-wrap[data-terrain="detailed"] .leaflet-tile-pane { filter: saturate(1.05) contrast(1.03) brightness(.88); }
+.leaflet-tile-pane { transition: opacity .2s ease; }
 .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #101b23; color: var(--text); }
 .leaflet-popup-content-wrapper { border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 35px rgba(0,0,0,.32); }
 .leaflet-popup-content { margin: 0; width: 270px !important; }
@@ -135,7 +133,7 @@ button { color: inherit; }
 
 @media (max-width: 600px) {
   .topbar { padding: 10px 14px; }
-  .brand-mark { width: 36px; height: 44px; }
+  .brand-logo { height: 66px; max-width: 300px; }
   .workspace { padding: 5px; grid-template-rows: 67vh auto; }
   .terrain-control { display: none; }
   .legend { right: 8px; bottom: 8px; width: 145px; }
